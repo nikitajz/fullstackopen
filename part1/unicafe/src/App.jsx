@@ -8,11 +8,27 @@ const StatisticLine = ({ text, count }) => (
   </div>
 );
 
+const allFeedback = ({ good, neutral, bad }) => good + neutral + bad;
+// the feedback values are: good 1, neutral 0, bad -1
+const avgFeedback = (stats) => {
+  const total = allFeedback(stats);
+  if (total === 0) return 0;
+  const { good, neutral, bad } = stats;
+  return (good * 1 + neutral * 0 + bad * -1) / total;
+};
+const positiveFeedback = (stats) => {
+  const total = allFeedback(stats);
+  if (total === 0) return 0;
+  return (stats.good / total) * 100;
+};
+
 const App = () => {
   // save clicks of each button to its own state
   const [good, setGood] = useState(0);
   const [neutral, setNeutral] = useState(0);
   const [bad, setBad] = useState(0);
+
+  const stats = { good, neutral, bad };
 
   return (
     <div>
@@ -25,6 +41,9 @@ const App = () => {
         <StatisticLine text="good" count={good} />
         <StatisticLine text="neutral" count={neutral} />
         <StatisticLine text="bad" count={bad} />
+        <StatisticLine text="all" count={allFeedback(stats)} />
+        <StatisticLine text="average" count={avgFeedback(stats)} />
+        <StatisticLine text="positive" count={positiveFeedback(stats + ' %')} />
       </div>
     </div>
   );
