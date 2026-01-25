@@ -22,16 +22,20 @@ const positiveFeedback = (stats) => {
   return (stats.good / total) * 100;
 };
 
-const Statistics = ({ stats }) => (
-  <div>
-    <StatisticLine text="good" count={stats.good} />
-    <StatisticLine text="neutral" count={stats.neutral} />
-    <StatisticLine text="bad" count={stats.bad} />
-    <StatisticLine text="all" count={allFeedback(stats)} />
-    <StatisticLine text="average" count={avgFeedback(stats)} />
-    <StatisticLine text="positive" count={positiveFeedback(stats) + ' %'} />
-  </div>
-);
+const Statistics = ({ stats }) => {
+  const total = allFeedback(stats);
+  if (total === 0) return 'No feedback given';
+  return (
+    <div>
+      <StatisticLine text="good" count={stats.good} />
+      <StatisticLine text="neutral" count={stats.neutral} />
+      <StatisticLine text="bad" count={stats.bad} />
+      <StatisticLine text="all" count={total} />
+      <StatisticLine text="average" count={avgFeedback(stats)} />
+      <StatisticLine text="positive" count={positiveFeedback(stats) + ' %'} />
+    </div>
+  );
+};
 
 const App = () => {
   // save clicks of each button to its own state
