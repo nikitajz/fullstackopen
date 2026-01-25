@@ -22,6 +22,17 @@ const positiveFeedback = (stats) => {
   return (stats.good / total) * 100;
 };
 
+const Statistics = ({ stats }) => (
+  <div>
+    <StatisticLine text="good" count={stats.good} />
+    <StatisticLine text="neutral" count={stats.neutral} />
+    <StatisticLine text="bad" count={stats.bad} />
+    <StatisticLine text="all" count={allFeedback(stats)} />
+    <StatisticLine text="average" count={avgFeedback(stats)} />
+    <StatisticLine text="positive" count={positiveFeedback(stats) + ' %'} />
+  </div>
+);
+
 const App = () => {
   // save clicks of each button to its own state
   const [good, setGood] = useState(0);
@@ -37,14 +48,7 @@ const App = () => {
       <Button onClick={() => setNeutral(neutral + 1)} text="neutral" />
       <Button onClick={() => setBad(bad + 1)} text="bad" />
       <Header title="statistics" />
-      <div>
-        <StatisticLine text="good" count={good} />
-        <StatisticLine text="neutral" count={neutral} />
-        <StatisticLine text="bad" count={bad} />
-        <StatisticLine text="all" count={allFeedback(stats)} />
-        <StatisticLine text="average" count={avgFeedback(stats)} />
-        <StatisticLine text="positive" count={positiveFeedback(stats + ' %')} />
-      </div>
+      <Statistics stats={stats} />
     </div>
   );
 };
