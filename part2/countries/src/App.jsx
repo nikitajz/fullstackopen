@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import getAllCountries from './services/countries';
-
-const api_key = import.meta.env.VITE_SOME_KEY;
+import weatherService from './services/weather';
 
 const TooManyMatches = () => <div>Too many matches, refine the filter</div>;
 
@@ -31,6 +30,45 @@ const CountriesList = ({ countries, onClick }) => {
   );
 };
 
+const Weather = ({ capital }) => {
+  const [weather, setWeather] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    weatherService
+      .getWeather(capital)
+      .then((data) => {
+        console.log('Weather data:', data);
+        setWeather(data);
+        setError(null);
+      })
+      .catch((err) => {
+        console.error('Weather fetch error:', err);
+        setError('Could not load weather data');
+      });
+  }, [capital]);
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (!weather) {
+    return <div>Loading weather...</div>;
+  }
+
+  return (
+    <div>
+      <h3>Weather in {capital}</h3>
+      <p>Temperature: {weather.main.temp} °C</p>
+      <img
+        src={weatherService.getIconUrl(weather.weather[0].icon)}
+        alt={weather.weather[0].description}
+      />
+      <p>Wind: {weather.wind.speed} m/s</p>
+    </div>
+  );
+};
+
 const CountryDetails = ({ country }) => (
   <div>
     <h2>
@@ -50,6 +88,8 @@ const CountryDetails = ({ country }) => (
         <li key={lang}>{lang}</li>
       ))}
     </ul>
+
+    <Weather capital={country.capital[0]} />
   </div>
 );
 
