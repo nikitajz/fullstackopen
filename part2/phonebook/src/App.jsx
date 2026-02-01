@@ -3,15 +3,16 @@ import { useState, useEffect } from 'react';
 import Filter from './components/Filter';
 import PersonForm from './components/PersonForm';
 import Persons from './components/Persons';
+import Notification from './components/Notification';
 
 import personsService from './services/persons';
 
 const App = () => {
   const [persons, setPersons] = useState([]);
-
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [filterName, setFilterName] = useState('');
+  const [notification, setNotification] = useState({ message: null, type: 'success' });
 
   useEffect(() => {
     personsService.getAll().then((allPersons) => {
@@ -19,37 +20,40 @@ const App = () => {
     });
   }, []);
 
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification({ message: null, type: 'success' }), 5000);
+  };
+
   const addPerson = (event) => {
     event.preventDefault();
-    if (persons.some((person) => person.name === newName)) {
-      // alert(`${newName} is already added to phonebook`);
-      console.log(`${newName} already exists in phonebook`);
 
-      const existingName = newName;
+    const existingPerson = persons.find((person) => person.name === newName);
+
+    if (existingPerson) {
       if (
         window.confirm(
-          `${existingName} is already added to phonebook. Replace the old number with a new number?`,
+          `${newName} is already added to phonebook. Replace the old number with a new one?`,
         )
       ) {
-        console.log('Confirmed to update existing person number');
-
-        const existingPersonId = persons.find(
-          (person) => person.name === newName,
-        ).id;
         personsService
-          .update(existingPersonId, { name: existingName, number: newNumber })
+          .update(existingPerson.id, { ...existingPerson, number: newNumber })
           .then((returnedPerson) => {
             setPersons(
               persons.map((person) =>
-                person.id === existingPersonId ? returnedPerson : person,
+                person.id === existingPerson.id ? returnedPerson : person,
               ),
             );
             setNewName('');
             setNewNumber('');
+            showNotification(`Updated ${newName}'s number`);
           })
-          .catch((error) => {
-            console.error(`Error updating person ${existingName}:`, error);
-            // alert('Failed to update person');
+          .catch(() => {
+            showNotification(
+              `Information of ${newName} has already been removed from server`,
+              'error',
+            );
+            setPersons(persons.filter((p) => p.id !== existingPerson.id));
           });
       }
       return;
@@ -61,6 +65,7 @@ const App = () => {
         setPersons([...persons, returnedPerson]);
         setNewName('');
         setNewNumber('');
+        showNotification(`Added ${returnedPerson.name}`);
       });
   };
 
@@ -77,11 +82,19 @@ const App = () => {
   };
 
   const handleDelete = ({ id, name }) => {
-    if (window.confirm(`Delete ${name}`)) {
-      personsService.delete(id).then((response) => {
-        console.log('delete response:', response);
-        setPersons(persons.filter((person) => person.id !== id));
-      });
+    if (window.confirm(`Delete ${name}?`)) {
+      personsService
+        .delete(id)
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+        })
+        .catch(() => {
+          showNotification(
+            `Information of ${name} has already been removed from server`,
+            'error',
+          );
+          setPersons(persons.filter((person) => person.id !== id));
+        });
     }
   };
 
@@ -92,8 +105,9 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notification.message} type={notification.type} />
       <Filter value={filterName} onChange={handleFilterNameChange} />
-      <h3>add a new</h3>
+      <h3>Add a new</h3>
       <PersonForm
         person={{ name: newName, number: newNumber }}
         onSubmit={addPerson}
