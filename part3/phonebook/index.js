@@ -1,7 +1,33 @@
 const express = require('express');
+const morgan = require('morgan');
 const app = express();
 
+morgan.token('post-req', function postReq(req) {
+  if (req.method === 'POST') {
+    return JSON.stringify(req.body);
+  }
+  return '';
+});
+
 app.use(express.json());
+// app.use(morgan('tiny'));
+// or short format with custom token:
+// app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post-req'));
+
+app.use(
+  morgan(function (tokens, req, res) {
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'),
+      '-',
+      tokens['response-time'](req, res),
+      'ms',
+      tokens['post-req'](req, res),
+    ].join(' ');
+  }),
+);
 
 let persons = [
   {
@@ -60,7 +86,7 @@ app.delete('/api/persons/:id', (request, response) => {
 
 app.post('/api/persons', (request, response) => {
   const body = request.body;
-  console.log(body);
+  // console.log(body);
 
   if (!body.name || !body.number) {
     return response.status(400).json({
