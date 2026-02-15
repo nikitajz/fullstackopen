@@ -10,6 +10,7 @@ morgan.token('post-req', function postReq(req) {
 });
 
 app.use(express.json());
+app.use(express.static('dist'));
 // app.use(morgan('tiny'));
 // or short format with custom token:
 // app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post-req'));
@@ -108,7 +109,7 @@ app.post('/api/persons', (request, response) => {
   response.status(201).json(person);
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
